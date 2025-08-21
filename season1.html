@@ -1,9 +1,7 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <title>موسم 1</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -64,45 +62,13 @@
       background-color: orange;
       color: #111;
     }
-    /* أزرار التنقل */
-    .nav-links {
-      margin-top: 30px;
-    }
-    .nav-links a {
-      color: orange;
-      font-weight: bold;
-      margin: 0 10px;
-      text-decoration: none;
-    }
-    .nav-links a:hover {
-      text-decoration: underline;
-    }
-    @media (max-width: 900px) {
-      .episodes { grid-template-columns: repeat(2, 1fr); max-width: 700px; }
-    }
-    @media (max-width: 420px) {
-      .episodes { grid-template-columns: repeat(1, 1fr); max-width: 360px; }
-    }
   </style>
 </head>
-<body>  
-  <h2>موسم 1</h2>  
-  <!-- خانة البحث -->  
-  <div class="search-box">
-    <input type="number" id="episodeNumber" min="1" placeholder="رقم الحلقة">
+<body>  <h2>موسم 1</h2>  <!-- خانة البحث -->  <div class="search-box">
+    <input type="number" id="episodeNumber" min="1" max="36" placeholder="رقم الحلقة">
     <button onclick="playEpisode()">تشغيل</button>
-  </div>  
-
-  <div class="episodes" id="episodesContainer"></div>  
-
-  <!-- روابط التنقل -->
-  <div class="nav-links">
-    <a href="gumball.html">⬅ العودة إلى معلومات غامبول</a>
-    <a href="index.html">🏠 الصفحة الرئيسية</a>
-  </div>
-
-  <script>
-    // روابط الحلقات (لم أغيّر الروابط)
+  </div>  <div class="episodes" id="episodesContainer"></div>  <script>
+    // روابط الحلقات
     const episodeLinks = [
       "https://vk.com/video1060594069_456239397?list=ln-CInzc14ZCxXK5niWZE",
       "https://vk.com/video1060594069_456239398?list=ln-JL1j3kZZGz5lGzz7cK",
@@ -142,22 +108,6 @@
       "https://vk.com/video1060594069_456239433?list=ln-EaaGogdJhx8yGsJZzR"
     ];
 
-    // ضبط الحد الأقصى لحقل البحث ليتوافق مع عدد الحلقات
-    const episodeInput = document.getElementById("episodeNumber");
-    if (episodeInput) episodeInput.max = episodeLinks.length;
-
-    // دالة فتح آمنة في تاب جديد مع احتياط في حال الحظر
-    function openInNewTab(url) {
-      try {
-        const w = window.open(url, '_blank');
-        // إذا فشل فتح تاب جديد (محجوب)، ننقل في نفس الصفحة
-        if (!w) window.location.href = url;
-      } catch (err) {
-        // احتياط: لو حصل خطأ، ننقل المستخدم مباشرة
-        window.location.href = url;
-      }
-    }
-
     // إنشاء الأزرار تلقائياً
     const container = document.getElementById("episodesContainer");
     episodeLinks.forEach((link, index) => {
@@ -168,10 +118,10 @@
       a.rel = "noopener noreferrer";
       a.textContent = `حلقة ${index + 1}`;
 
-      // عند النقر نمنع السلوك الافتراضي ونفتح الرابط (باستخدام openInNewTab)
+      // عند النقر نمنع السلوك الافتراضي ونفتح الرابط فوراً في تبويب جديد
       a.addEventListener('click', function(e) {
         e.preventDefault();
-        openInNewTab(link);
+        window.open(link, '_blank', 'noopener,noreferrer');
       });
 
       container.appendChild(a);
@@ -179,17 +129,13 @@
 
     // وظيفة البحث
     function playEpisode() {
-      try {
-        const num = parseInt(document.getElementById("episodeNumber").value, 10);
-        if (num >= 1 && num <= episodeLinks.length) {
-          openInNewTab(episodeLinks[num - 1]);
-        } else {
-          alert("الرجاء إدخال رقم حلقة صحيح بين 1 و " + episodeLinks.length);
-        }
-      } catch (e) {
-        alert("حدث خطأ، حاول مرة أخرى.");
+      const num = parseInt(document.getElementById("episodeNumber").value, 10);
+      if (num >= 1 && num <= episodeLinks.length) {
+        // فتح مباشر في تبويب جديد بدون أي انتظار
+        window.open(episodeLinks[num - 1], '_blank', 'noopener,noreferrer');
+      } else {
+        alert("الرجاء إدخال رقم حلقة صحيح بين 1 و 36");
       }
     }
-  </script>
-</body>
+  </script></body>
 </html>
