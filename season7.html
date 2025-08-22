@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>الموسم 7</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: white;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 10px;
+    }
+    .search-box {
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+    }
+    input {
+      width: 120px;
+      text-align: center;
+    }
+    button {
+      background-color: orange;
+      color: black;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .episodes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .episode-btn {
+      background-color: #2a2a2a;
+      color: #ddd;
+      border: none;
+      padding: 14px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      display: block;
+    }
+    .episode-btn:hover {
+      background-color: orange;
+      color: #111;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>الموسم 7</h2>
+
+  <div class="search-box">
+    <input type="number" id="episodeNumber" placeholder="رقم الحلقة" min="1" max="20">
+    <button onclick="goToEpisode()">تشغيل</button>
+  </div>
+
+  <div class="episodes" id="episodesContainer"></div>
+
+  <script>
+    const episodes = [
+      "https://vk.com/video1060594069_456239227?list=ln-4dfrU05ryGpCTdtzkf",
+      "https://vk.com/video1060594069_456239228?list=ln-hOeLIvZCveMdtOzH2R",
+      "https://vk.com/video1060594069_456239229?list=ln-u7Dbb00tGSVwkKzlwB",
+      "https://vk.com/video1060594069_456239230?list=ln-ghvQPrhMZaqw471yh5",
+      "https://vk.com/video1060594069_456239231?list=ln-j6cQHeZx2zggaKV93g",
+      "https://vk.com/video1060594069_456239232?list=ln-Rvc7rHtDgsgMQMkiQf",
+      "https://vk.com/video1060594069_456239233?list=ln-i1iHZpT1CvtmHOVAZn",
+      "https://vk.com/video1060594069_456239234?list=ln-PVOzjbAaAvUAf8GhfK",
+      "https://vk.com/video1060594069_456239235?list=ln-Gq1m1wZ5LPMCq27Fdi",
+      "https://vk.com/video1060594069_456239236?list=ln-i0iN35AZnMCKFh9IzZ",
+      "https://vk.com/video1060594069_456239237?list=ln-gaFsjkkhdNhsDW8Fuy",
+      "https://vk.com/video1060594069_456239238?list=ln-TtZkIJLBY8vjFLLLzH",
+      "https://vk.com/video1060594069_456239239?list=ln-bm1dnrHaAUVWfgCczy",
+      "https://vk.com/video1060594069_456239240?list=ln-uBew5MZAnFTXQu501F",
+      "https://vk.com/video1060594069_456239241?list=ln-HVuRTbUknNRvmZzXJX",
+      "https://vk.com/video1060594069_456239244?list=ln-RUMTkYDJ9GDIJEeCz8",
+      "https://vk.com/video1060594069_456239245?list=ln-JuOwezzZ27jzUDGtiN",
+      "https://vk.com/video1060594069_456239246?list=ln-ZeZ6r9lQeimqImE8k9",
+      "https://vk.com/video1060594069_456239247?list=ln-RfGLXGIqbxYz6JEbwF",
+      "https://vk.com/video1060594069_456239248?list=ln-YzNH5uwkRNtUlX2dX4"
+    ];
+
+    const container = document.getElementById('episodesContainer');
+
+    // استبدال عناصر <a> بأزرار تفتح الروابط مباشرة عند الضغط
+    episodes.forEach((url, index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'episode-btn';
+      btn.textContent = `حلقة ${index + 1}`;
+      btn.setAttribute('aria-label', `فتح حلقة ${index + 1} في تبويب جديد`);
+      // فتح الرابط فوراً في تبويب جديد (_blank). لتغييره إلى نفس التبويب استبدل '_blank' بـ '_self'
+      btn.onclick = () => window.open(url, '_blank', 'noopener,noreferrer');
+      container.appendChild(btn);
+    });
+
+    function goToEpisode() {
+      const num = parseInt(document.getElementById('episodeNumber').value, 10);
+      if (num >= 1 && num <= episodes.length) {
+        // فتح مباشر لرابط الحلقة المحددة في تبويب جديد
+        window.open(episodes[num - 1], '_blank', 'noopener,noreferrer');
+        // لو أردت الفتح في نفس التبويب: استبدل السطر أعلاه بـ:
+        // window.location.href = episodes[num - 1];
+      } else {
+        alert('الرجاء إدخال رقم حلقة صحيح بين 1 و ' + episodes.length);
+      }
+    }
+  </script>
+
+</body>
+</html>
