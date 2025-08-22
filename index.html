@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شخصية متكلمة</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --unit: 60px;
+    --skin: #ff8c42;
+    --line: #1f1f1f;
+}
+
+body{
+    background: url('https://iili.io/FtXCoxV.webp') no-repeat center center fixed;
+    background-size: cover;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* الرأس في أعلى يسار الشاشة */
+.head{
+    width: var(--unit);
+    height: var(--unit);
+    background: var(--skin);
+    border: 3px solid var(--line);
+    border-radius: 50%;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+/* العيون */
+.eyes{
+    position:absolute;
+    top:25%;
+    left:50%;
+    transform:translateX(-50%);
+    width:70%;
+    display:flex;
+    justify-content:space-between;
+}
+
+.eye{
+    width: 12px;
+    height: 14px;
+    background: white;
+    border: 1.5px solid var(--line);
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+}
+
+.eye .pupil{
+    width: 6px;
+    height: 6px;
+    background: black;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    animation: pupilMove 1.6s infinite;
+}
+
+@keyframes pupilMove{
+    0%,100% { top: 3px; left: 3px; }
+    25% { top: 2px; left: 4px; }
+    50% { top: 3px; left: 2px; }
+    75% { top: 2px; left: 3px; }
+}
+
+.nose{
+    position:absolute;
+    top:45%;
+    left:50%;
+    transform:translateX(-50%);
+    width: 1px;
+    height: 7px;
+    background: var(--line);
+}
+
+.mouth{
+    position:absolute;
+    bottom:20%;
+    left:50%;
+    transform:translateX(-50%);
+    width: 15px;
+    height: 5px;
+    background: var(--line);
+    border-radius: 0 0 20px 20px;
+    animation: talkRealistic 1.6s infinite;
+    transform-origin: top center;
+}
+
+@keyframes talkRealistic {
+    0%,55%,100% { height:5px; border-radius:0 0 20px 20px; }
+    10%,70% { height:3px; border-radius:50%/80%; }
+    25%,85% { height:9px; border-radius:50%/40%; }
+    35%,95% { height:6px; border-radius:40%/60%; }
+    50% { height:10px; border-radius:50%/35%; }
+}
+
+/* فقاعات الرسائل على يمين الرأس */
+.speech-bubble {
+    position: absolute;
+    top: 28px; 
+    left: calc(var(--unit) + 10px); 
+    transform: scale(0);
+    transform-origin: left center;
+    background: white;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 6px 12px; 
+    font-size: 12px;
+    display: block;
+    word-break: break-word;
+    white-space: pre-wrap;
+    text-align: left;
+    max-width: 350px; 
+    min-width: 80px;
+    height: auto;
+    line-height: 1.4em;
+    transition: transform 0.3s ease-in-out;
+}
+
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    top: 10px; 
+    left: -8px;
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent white transparent transparent;
+}
+
+/* حاوية الأزرار أعلى قليلاً من الأسفل */
+.button-container {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* أزرار منخفضة الارتفاع واحترافية */
+button {
+    width: 220px;
+    padding: 10px 0;
+    font-size: 20px;
+    margin: 8px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #ff9c43, #ff6f00);
+    color: white;
+    cursor: pointer;
+    font-family: "Cairo", sans-serif;
+    font-weight: 700;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3), 
+                inset 0 -3px 0 rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, filter 0.3s;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+    transform: rotate(0deg);
+    pointer-events: none;
+    animation: shine 3s linear infinite;
+}
+
+@keyframes shine {
+    0% { transform: rotate(0deg) translateX(0); }
+    100% { transform: rotate(360deg) translateX(0); }
+}
+
+button:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.35), 
+                inset 0 -3px 0 rgba(0,0,0,0.2);
+    filter: drop-shadow(0 0 12px rgba(255,140,66,0.8));
+}
+
+button:active {
+    transform: translateY(1px) scale(0.98);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25), 
+                inset 0 -3px 0 rgba(0,0,0,0.2);
+    filter: none;
+}
+</style>
+</head>
+<body>
+
+<div class="head">
+    <div class="speech-bubble"></div>
+    <div class="eyes">
+        <div class="eye"><div class="pupil"></div></div>
+        <div class="eye"><div class="pupil"></div></div>
+    </div>
+    <div class="nose"></div>
+    <div class="mouth"></div>
+</div>
+
+<div class="button-container">
+    <button>الدخول</button>
+    <button>تواصل معي</button>
+</div>
+
+<script>
+const bubble = document.querySelector('.speech-bubble');
+
+const messages = [
+    "شكراً على تحميلك تطبيقنا.",
+    "إذا أردت مني إضافة أي فلم أو مسلسل، يمكنك إخباري بذلك عبر الضغط على زر تواصل معي الموجود أسفل الشاشة، وسأقوم بتنفيذ طلبك فوراً وبسرعة."
+];
+
+let current = 0;
+
+function showMessage() {
+    bubble.innerText = messages[current];
+
+    bubble.style.transform = 'scale(0)';
+    setTimeout(() => {
+        bubble.style.transform = 'scale(1)';
+    }, 50);
+
+    setTimeout(() => {
+        bubble.style.transform = 'scale(0)';
+        current = (current + 1) % messages.length;
+    }, 7000);
+}
+
+showMessage();
+setInterval(showMessage, 7050);
+
+// تعديل: جعل زر "تواصل معي" يفتح الرابط مباشرة في نفس التبويب (فتح حساب الانستغرام مباشرة)
+(function attachContactLink(){
+  const contactBtn = document.querySelectorAll('button')[1];
+  if (!contactBtn) return;
+  contactBtn.addEventListener('click', function(){
+    const url = 'https://www.instagram.com/zanzulla1?igsh=MXc1aHVoeHU1YmpuYg==';
+    // افتح الرابط مباشرًا في نفس النافذة
+    window.location.href = url;
+  });
+})();
+
+// إضافة: تعيين أمر لزر "الدخول" ليقوم بالتنقل إلى Go:M1
+(function attachEnterCommand(){
+  const enterBtn = document.querySelectorAll('button')[0];
+  if (!enterBtn) return;
+  enterBtn.addEventListener('click', function(){
+    try {
+      window.location.href = 'office.html';
+    } catch(e){
+      try { window.open('office.html', '_self'); } catch(e){}
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
