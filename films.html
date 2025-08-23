@@ -1,0 +1,282 @@
+<!DOCTYPE html><html lang="ar"><head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>نسخة تجريبية من نتفليكس — الأفلام</title>
+<style>
+  :root{ --bg:#000; --fg:#fff; --muted:#b3b3b3; --card:#141414; --accent:#e50914; --glass: rgba(255,255,255,0.04); }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:inherit;text-decoration:none}/* Top bar */ .topbar{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.6) 60%, transparent);padding:12px 16px 8px;display:flex;align-items:center;gap:12px} .logo{margin-left:2px;font-weight:800;letter-spacing:.06em;color:var(--accent);font-size:22px} .avatar{margin-left:auto;width:28px;height:28px;border-radius:50%;overflow:hidden;border:2px solid #222}/* Burger button (added) */ .burger{appearance:none;border:0;background:transparent;color:var(--muted);display:inline-grid;place-items:center;width:38px;height:38px;border-radius:8px;cursor:pointer;padding:6px} .burger:active{transform:scale(.98)} .burger svg{width:20px;height:20px;display:block}/* Tabs */ .tabs{display:flex;gap:22px;align-items:center;padding:8px 16px 10px} .tab{font-size:15px;color:#ddd;opacity:.9;position:relative;padding-bottom:6px;background:transparent;border:0} .tab.active{color:#fff;font-weight:600}
+
+/* Title */ .page-title{font-size:28px;font-weight:800;padding:18px 16px 8px;margin:0}
+
+/* Grid: 3 columns */ .series-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:12px 16px 24px;align-items:start} .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));border-radius:8px;overflow:hidden;display:block;border:1px solid rgba(255,255,255,0.04);box-shadow:0 8px 20px rgba(0,0,0,0.6)} .card .art{width:100%;aspect-ratio:2/3;display:block;overflow:hidden} .card img{width:100%;height:100%;object-fit:cover;display:block} .card .meta{padding:8px 10px;background:transparent;text-align:right} .card .title{font-size:13px;font-weight:700;margin:0;color:#fff} .card .sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+@media (max-width:420px){ .series-grid{grid-template-columns:repeat(3,1fr);gap:8px;padding:8px} .page-title{font-size:22px;padding:12px} .card .meta{padding:6px 8px} }
+
+/* bottom nav styles kept */ .bottom-nav{position:sticky;bottom:0;z-index:40;background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.6) 10%, rgba(0,0,0,.95) 60%);padding:10px 14px 12px} .nav{background:#171717;border:1px solid #222;border-radius:20px;display:flex;justify-content:space-around;align-items:center;padding:12px 8px;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.45)} .nav button{appearance:none;border:0;background:transparent;color:#cfcfcf;display:grid;gap:6px;place-items:center;font-size:11px;padding:0 4px 2px;min-width:54px;cursor:pointer;touch-action:manipulation} .nav button.active{color:#fff} .ico{width:22px;height:22px;display:block}
+
+.panel-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);opacity:0;visibility:hidden;transition:opacity .18s ease;z-index:190} .panel-backdrop.visible{opacity:1;visibility:visible;} .notifications-panel{position:fixed;left:0;right:0;bottom:0;max-height:78vh;background:linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.98));border-top-left-radius:14px;border-top-right-radius:14px;transform:translateY(110%);transition:transform .28s cubic-bezier(.22,.9,.31,1);z-index:200;box-shadow:0 -12px 30px rgba(0,0,0,0.6);overflow:hidden;display:flex;flex-direction:column} .notifications-panel.open{transform:translateY(0)} .notifications-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)} .notifications-header h3{margin:0;font-size:16px} .notifications-header .actions{display:flex;gap:8px;align-items:center} .notifications-header button{background:transparent;border:0;color:var(--muted);cursor:pointer;padding:8px;border-radius:8px} .notifications-list{Overflow:auto;padding:20px 12px;display:flex;flex-direction:column;gap:10px;min-height:120px}
+
+/* === Side menu (new) === */ .side-backdrop{ position:fixed;inset:0;background:rgba(0,0,0,0.45);opacity:0;visibility:hidden;transition:opacity .22s ease;z-index:180; } .side-backdrop.visible{opacity:1;visibility:visible;}
+
+.side-menu{ position:fixed;top:0;left:0;height:100vh;width:280px;max-width:82vw;transform:translateX(-100%);transition:transform .22s cubic-bezier(.2,.9,.3,1);z-index:190; background:linear-gradient(180deg, rgba(22,22,22,0.98), rgba(10,10,10,0.98)); box-shadow: 8px 0 24px rgba(0,0,0,0.6); border-right:1px solid rgba(255,255,255,0.03); display:flex;flex-direction:column;padding:14px 10px; touch-action:pan-y; } .side-menu.open{transform:translateX(0)} .side-menu .menu-header{display:flex;align-items:center;gap:10px;padding:6px 8px;margin-bottom:6px} .side-menu .menu-header .logo{font-size:18px;margin:0;color:var(--accent)} .side-menu nav{display:flex;flex-direction:column;gap:6px;padding-top:6px} .side-menu a{padding:10px 12px;border-radius:8px;color:#eaeaea;font-weight:600;text-decoration:none;display:flex;justify-content:space-between;align-items:center} .side-menu a.small{font-weight:500;font-size:14px;color:var(--muted)} .side-menu .spacer{flex:1}
+
+/* handle visible edge for swipe (invisible but captures) */ .edge-swipe-area{position:fixed;left:0;top:0;height:100vh;width:22px;z-index:170} @media (min-width:900px){ .edge-swipe-area{width:36px} }
+
+/* small tweak to avoid overlap with other fixed elements */ .topbar .burger{margin-right:4px}
+
+/* quick pressed feedback */ .pressed { transform: translateY(1px) scale(.998); opacity:.98; transition: transform .08s, opacity .08s; } </style>
+
+</head>
+<body>
+  <div class="topbar">
+    <!-- added burger button (keeps remaining topbar code unchanged) -->
+    <button id="burgerMenu" class="burger" aria-label="قائمة">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"></path></svg>
+    </button><div class="logo">zanzulla</div>
+<div class="avatar"><img src="https://picsum.photos/seed/profile/200" alt="الملف الشخصي" decoding="async" loading="lazy" width="56" height="56"></div>  </div>  <nav class="tabs" role="tablist" aria-label="التبويبات">
+    <button class="tab">الرئيسية</button>
+    <button class="tab">المسلسلات</button>
+    <button class="tab active" aria-current="true">الأفلام</button>
+    <button class="tab">قائمتي</button>
+  </nav>  <main>
+    <h1 class="page-title">الأفلام</h1><section class="series-grid" aria-label="شبكة الأفلام">
+  <!-- صف 1: 3 صور -->
+  <a class="card" href="soon.html">
+    <span class="art"><img src="https://iili.io/FDCBvB1.jpg" alt="فيلم 1" decoding="async" loading="eager" fetchpriority="high" width="400" height="600"></span>
+    <div class="meta"><p class="title">zootopia</p><p class="sub">2016 · كوميديا</p></div>
+  </a>
+  <a class="card" href="tangled.html">
+    <span class="art"><img src="https://iili.io/FDCBNIV.jpg" alt="فيلم 2" decoding="async" loading="lazy" width="400" height="600"></span>
+    <div class="meta"><p class="title">tangled</p><p class="sub">2010 · مغامرات</p></div>
+  </a>
+  <a class="card" href="soon.html">
+    <span class="art"><img src="https://iili.io/FDCBYml.jpg" alt="فيلم 3" decoding="async" loading="lazy" width="400" height="600"></span>
+    <div class="meta"><p class="title">How to train your dragon</p><p class="sub">2025 · مغامرات</p></div>
+  </a>  <!-- صف 2: 1 صورة (المتبقي) -->  <a class="card" href="soon.html">
+    <span class="art"><img src="https://iili.io/FDCqgb2.jpg" alt="فيلم 4" decoding="async" loading="lazy" width="400" height="600"></span>
+    <div class="meta"><p class="title">Ed Edd Edy</p><p class="sub">2009 · مغامرات</p></div>
+  </a>  <!-- === Added 4 new cards as requested === -->  <a class="card" href="johnwick.html">
+    <span class="art"><img src="https://iili.io/FmeG1ta.jpg" alt="John Wick" decoding="async" loading="lazy" width="400" height="600"></span>
+    <div class="meta"><p class="title">John Wick</p><p class="sub">2014 · أكشن</p></div>
+  </a>  <a class="card" href="tcb.html">
+    <span class="art"><img src="https://iili.io/FmO9mfn.jpg" alt="The corpse bride" decoding="async" loading="lazy" width="400" height="600"></span>
+    <div class="meta"><p class="title">The corpse bride</p><p class="sub">2005 · فانتازيا</p></div>
+  </a>  <a class="card" href="twr.html">
+    <span class="art"><img src="https://iili.io/FmeEPja.jpg" alt="The wild robot" decoding="async" loading="lazy" width="400" height="600"></span>
+    <div class="meta"><p class="title">The wild robot</p><p class="sub">2024 · خيال علمي</p></div>
+  </a>  <a class="card" href="rtg.html">
+    <span class="art"><img src="https://iili.io/FmeEZ4p.jpg" alt="rise of the guardians" decoding="async" loading="lazy" width="400" height="600"></span>
+    <div class="meta"><p class="title">rise of the guardians</p><p class="sub">2012 · فانتازيا</p></div>
+  </a>  <!-- ====== الكرت الجديد المضاف ====== -->  <a class="card" href="ovr.html">
+    <span class="art"><img src="https://iili.io/KHbSeF1.jpg" alt="فيلم جديد" decoding="async" loading="lazy" width="400" height="600"></span>
+    <div class="meta"><p class="title">The over garden wall</p><p class="sub">2014 · غموض</p></div>
+  </a></section>  </main>  <!-- Notifications backdrop + panel -->  <div id="panelBackdrop" class="panel-backdrop" aria-hidden="true"></div>  <aside id="notificationsPanel" class="notifications-panel" aria-hidden="true" role="dialog" aria-label="الإشعارات">
+    <div class="notifications-header">
+      <h3>الإشعارات</h3>
+      <div class="actions">
+        <button id="clearNotifications" title="مسح الكل">مسح الكل</button>
+        <button id="closeNotifications" aria-label="إغلاق">إغلاق</button>
+      </div>
+    </div>
+    <div class="notifications-list" id="notificationsList">
+      <div style="padding:20px;text-align:center;color:var(--muted);">لا توجد إشعارات</div>
+    </div>
+  </aside>  <!-- Side menu elements (added) -->  <div class="edge-swipe-area" id="edgeSwipeArea" aria-hidden="true"></div>
+  <div id="sideBackdrop" class="side-backdrop" aria-hidden="true"></div>
+  <aside id="sideMenu" class="side-menu" aria-hidden="true" role="dialog" aria-label="القائمة الجانبية">
+    <div class="menu-header">
+      <div class="logo">zanzulla</div>
+      <div style="margin-left:auto">
+        <button id="closeSideBtn" class="burger" aria-label="إغلاق القائمة">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.71L12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.18 12 2.88 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"></path></svg>
+        </button>
+      </div>
+    </div>
+    <nav aria-label="روابط القايمة">
+      <a href="#" class="small">الرئيسية</a>
+      <a href="#" class="small">المسلسلات</a>
+      <a href="#" class="small">الأفلام</a>
+      <a href="#" class="small">قائمتي</a>
+      <a href="#" class="small">قنوات وشركات</a>
+      <a href="#" class="small">الإعدادات</a>
+    </nav>
+    <div class="spacer"></div>
+    <div style="padding:10px 12px;font-size:13px;color:var(--muted)">مستخدم: zanzulla<br>حسابك — إدارة</div>
+  </aside>  <!-- Bottom navigation restored to original with icons and IDs -->  <div class="bottom-nav">
+    <div class="nav" role="navigation" aria-label="القائمة السفلية">
+      <button class="active" aria-label="الرئيسية">
+        <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3z"></path></svg>
+        <span>الرئيسية</span>
+      </button>
+      <button aria-label="بحث" id="searchBtn">
+        <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.5 21.5 20 15.5 14zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+        <span>بحث</span>
+      </button><button aria-label="قائمتي">
+    <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+    <span>قائمتي</span>
+  </button>  <button aria-label="الإشعارات" id="notificationsBtn">
+    <svg class="ico" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5S10.5 3.17 10.5 4v.68C7.63 5.36 6 7.92 6 11v5l-1.99 2H20l-2-2z"></path>
+    </svg>
+    <span>الإشعارات</span>
+  </button>  <button aria-label="التنزيلات">
+    <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM12 2l-5.5 6h4v6h3V8h4L12 2z"></path></svg>
+    <span>الت تنزيلات</span>
+  </button>
+</div>  </div>  <script>
+  // Initialize interactive behaviour after DOM ready to avoid timing issues
+  document.addEventListener('DOMContentLoaded', function(){
+    // Top-level elements
+    const burgerMenu = document.getElementById('burgerMenu');
+    const sideMenu = document.getElementById('sideMenu');
+    const sideBackdrop = document.getElementById('sideBackdrop');
+    const closeSideBtn = document.getElementById('closeSideBtn');
+    const edgeSwipeArea = document.getElementById('edgeSwipeArea');
+
+    const searchBtn = document.getElementById('searchBtn');
+    const searchOverlay = document.getElementById('searchOverlay');
+    const closeSearch = document.getElementById('closeSearch');
+
+    const notificationsBtn = document.getElementById('notificationsBtn');
+    const notificationsPanel = document.getElementById('notificationsPanel');
+    const panelBackdrop = document.getElementById('panelBackdrop');
+    const closeNotifications = document.getElementById('closeNotifications');
+    const clearNotifications = document.getElementById('clearNotifications');
+    const notificationsList = document.getElementById('notificationsList');
+
+    // Small helper: safe addEventListener
+    function on(el, ev, fn, opts){ if(!el) return; el.addEventListener(ev, fn, opts); }
+
+    // Burger toggles side menu
+    on(burgerMenu, 'click', (e)=>{ e.stopPropagation(); if(sideMenu) sideMenu.classList.toggle('open'); });
+
+    // Close side when clicking outside
+    document.addEventListener('click', (e)=>{
+      if (sideMenu && sideMenu.classList && sideMenu.classList.contains('open') && !sideMenu.contains(e.target) && !burgerMenu.contains(e.target)) {
+        sideMenu.classList.remove('open');
+      }
+    });
+
+    // Search overlay (if present)
+    if (searchBtn) on(searchBtn, 'click', ()=>{ if (searchOverlay) searchOverlay.classList.add('active'); });
+    if (closeSearch) on(closeSearch, 'click', ()=>{ if (searchOverlay) searchOverlay.classList.remove('active'); });
+
+    // Bottom nav active state (visual only)
+    document.querySelectorAll('.nav button').forEach(btn=>{
+      on(btn,'click', ()=>{
+        document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // Notifications panel open/close helpers
+    function openNotifications(){
+      if (panelBackdrop) panelBackdrop.classList.add('visible');
+      if (panelBackdrop) panelBackdrop.setAttribute('aria-hidden','false');
+      if (notificationsPanel) notificationsPanel.classList.add('open');
+      if (notificationsPanel) notificationsPanel.setAttribute('aria-hidden','false');
+      document.body.style.overscrollBehavior = 'none';
+    }
+    function closeNotificationsPanel(){
+      if (panelBackdrop) panelBackdrop.classList.remove('visible');
+      if (panelBackdrop) panelBackdrop.setAttribute('aria-hidden','true');
+      if (notificationsPanel) notificationsPanel.classList.remove('open');
+      if (notificationsPanel) notificationsPanel.setAttribute('aria-hidden','true');
+      document.body.style.overscrollBehavior = '';
+    }
+
+    if (notificationsBtn) {
+      on(notificationsBtn,'click',(e)=>{ e.stopPropagation(); if(notificationsPanel && notificationsPanel.classList.contains('open')) closeNotificationsPanel(); else openNotifications(); });
+    }
+    on(closeNotifications,'click', closeNotificationsPanel);
+    on(panelBackdrop,'click', closeNotificationsPanel);
+    on(clearNotifications,'click', ()=>{
+      if (!notificationsList) return;
+      while (notificationsList.firstChild) notificationsList.removeChild(notificationsList.firstChild);
+      const empty = document.createElement('div'); empty.style.padding = '20px'; empty.style.textAlign = 'center'; empty.style.color = 'var(--muted)'; empty.textContent = 'لا توجد إشعارات'; notificationsList.appendChild(empty);
+    });
+
+    // Side menu helpers
+    function openSideMenu(){ if(sideMenu){ sideMenu.classList.add('open'); sideMenu.setAttribute('aria-hidden','false'); } if(sideBackdrop){ sideBackdrop.classList.add('visible'); sideBackdrop.setAttribute('aria-hidden','false'); } document.body.style.overscrollBehavior = 'none'; }
+    function closeSideMenu(){ if(sideMenu){ sideMenu.classList.remove('open'); sideMenu.setAttribute('aria-hidden','true'); sideMenu.style.transform = ''; } if(sideBackdrop){ sideBackdrop.classList.remove('visible'); sideBackdrop.setAttribute('aria-hidden','true'); } document.body.style.overscrollBehavior = ''; }
+
+    on(sideBackdrop,'click', closeSideMenu);
+    on(closeSideBtn,'click', closeSideMenu);
+
+    // Edge swipe + dragging implementation (kept and robust)
+    const _sideMenu = sideMenu;
+    const _sideBackdrop = sideBackdrop;
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    function menuWidth() { return _sideMenu ? Math.min(280, window.innerWidth * 0.82) : 280; }
+
+    let touching = false;
+    let startX = 0;
+    let currentX = 0;
+    let targetTranslate = 0;
+    let rafId = null;
+
+    function scheduleFrame(){
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        if (!_sideMenu || !_sideBackdrop) return;
+        _sideMenu.style.transform = `translateX(${targetTranslate}px)`;
+        const pct = 1 - Math.abs(targetTranslate) / menuWidth();
+        const opacity = clamp(0.45 * pct, 0, 0.45);
+        _sideBackdrop.style.opacity = String(opacity);
+        _sideBackdrop.style.pointerEvents = (opacity > 0.02) ? 'auto' : 'none';
+      });
+    }
+
+    function onStart(clientX){
+      touching = true; startX = clientX; currentX = clientX;
+      if (_sideBackdrop) { _sideBackdrop.classList.add('visible'); _sideBackdrop.setAttribute('aria-hidden','false'); }
+      if (_sideMenu && !_sideMenu.classList.contains('open')) { targetTranslate = -menuWidth(); _sideMenu.style.transform = `translateX(${targetTranslate}px)`; _sideMenu.setAttribute('aria-hidden','false'); }
+      else { targetTranslate = 0; _sideMenu && (_sideMenu.style.transform = `translateX(0px)`); }
+      document.body.style.overscrollBehavior = 'none'; scheduleFrame();
+    }
+    function onMove(clientX){ if (!touching) return; currentX = clientX; const dx = currentX - startX; if (_sideMenu && _sideMenu.classList.contains('open')) { let x = clamp(Math.min(0, dx), -menuWidth(), 0); targetTranslate = x; } else { let x = clamp(-menuWidth() + Math.min(menuWidth(), dx), -menuWidth(), 0); targetTranslate = x; } scheduleFrame(); }
+    function onEnd(){ if (!touching) return; touching = false; const dx = currentX - startX; const threshold = menuWidth() * 0.35; const opened = _sideMenu && _sideMenu.classList.contains('open'); if (opened) { if (dx < -threshold) { closeSideMenu(); } else { openSideMenu(); if (_sideMenu) _sideMenu.style.transform = ''; if (_sideBackdrop) { _sideBackdrop.style.opacity = ''; _sideBackdrop.style.pointerEvents = ''; } } } else { if (dx > threshold) { openSideMenu(); if (_sideMenu) _sideMenu.style.transform = ''; if (_sideBackdrop) { _sideBackdrop.style.opacity = ''; _sideBackdrop.style.pointerEvents = ''; } } else { closeSideMenu(); } } if (rafId) { cancelAnimationFrame(rafId); rafId = null; } document.body.style.overscrollBehavior = ''; }
+
+    // touch
+    document.addEventListener('touchstart', function(e){ if (e.touches.length !== 1) return; const t = e.touches[0]; const withinEdge = t.clientX <= 32; if (withinEdge || (_sideMenu && _sideMenu.classList.contains('open') && t.clientX <= menuWidth())) { onStart(t.clientX); } }, {passive:true});
+    document.addEventListener('touchmove', function(e){ if (!touching) return; const t = e.touches[0]; onMove(t.clientX); }, {passive:true});
+    document.addEventListener('touchend', function(e){ onEnd(); });
+
+    // mouse
+    let mouseDown = false;
+    document.addEventListener('mousedown', function(e){ if (e.button !== 0) return; const withinEdge = e.clientX <= 20; if (withinEdge || (_sideMenu && _sideMenu.classList.contains('open') && e.clientX <= menuWidth())) { mouseDown = true; onStart(e.clientX); e.preventDefault(); } });
+    document.addEventListener('mousemove', function(e){ if (!mouseDown) return; onMove(e.clientX); });
+    document.addEventListener('mouseup', function(e){ if (!mouseDown) return; mouseDown = false; onEnd(); });
+
+    if (edgeSwipeArea) { on(edgeSwipeArea,'click', (e)=>{ e.stopPropagation(); openSideMenu(); }); edgeSwipeArea.addEventListener('mouseenter', ()=>{ edgeSwipeArea.style.cursor = 'pointer'; }); }
+
+    // Small runtime fixes
+    try {
+      document.querySelectorAll('img').forEach((img, i) => {
+        if (!img.hasAttribute('decoding')) img.setAttribute('decoding','async');
+        if (!img.hasAttribute('loading')) { if (i === 0) img.setAttribute('loading','eager'); else img.setAttribute('loading','lazy'); }
+      });
+      const interactive = document.querySelectorAll('.nav button, .tab, .burger, .card, .side-menu a, .notifications-header button');
+      interactive.forEach(el => { el.addEventListener('pointerdown', () => el.classList.add('pressed'), {passive:true}); ['pointerup','pointercancel','pointerleave'].forEach(ev => el.addEventListener(ev, ()=> el.classList.remove('pressed'), {passive:true})); });
+      function warmDecode(){ document.querySelectorAll('img').forEach(img => { if (img.complete && typeof img.decode === 'function') img.decode().catch(()=>{}); }); }
+      if ('requestIdleCallback' in window) requestIdleCallback(warmDecode, {timeout:1200}); else setTimeout(warmDecode, 1000);
+    } catch(e){ /* ignore */ }
+
+    // Attach top tab nav handlers
+    (function attachTopTabNav(){
+      const map = { "الرئيسية": "Go:M1", "قائمتي": "Go:M4", "المسلسلات": "Go:M2" };
+      const tabs = Array.from(document.querySelectorAll('.tabs .tab'));
+      if (!tabs.length) return;
+      tabs.forEach(tab => {
+        const txt = (tab.textContent || tab.innerText || '').trim(); if (!map[txt]) return;
+        tab.addEventListener('click', function (e) { if (e && typeof e.preventDefault === 'function') e.preventDefault(); try { window.location.href = map[txt]; } catch (err) { try { window.open(map[txt], '_self'); } catch (e) {} } });
+        tab.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); try { window.location.href = map[txt]; } catch(err){ try { window.open(map[txt], '_self'); } catch(e){} } } });
+      });
+    })();
+
+  });
+  </script></body>
+</html>
