@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>الموسم 6</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: white;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h2 { margin-bottom: 10px; }
+    .search-box { margin-bottom: 20px; }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+    }
+    input { width: 120px; text-align: center; }
+    button.play { background-color: orange; color: black; cursor: pointer; font-weight: bold; }
+    .episodes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .episode-btn {
+      background-color: #2a2a2a;
+      color: #ddd;
+      border: none;
+      padding: 14px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      display: block;
+    }
+    .episode-btn:hover { background-color: orange; color: #111; }
+
+    /* مودال الفيديو */
+    .video-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .video-modal {
+      width: 86%;
+      max-width: 1100px;
+      height: 66%;
+      background: #000;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+    .video-modal iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    .video-close {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255,0,0,0.9);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 10000;
+    }
+  </style>
+</head>
+<body>
+
+<h2>الموسم 6</h2>
+
+<div class="search-box">
+  <input type="number" id="episodeNumber" placeholder="رقم الحلقة" min="1" max="44">
+  <button class="play" onclick="goToEpisode()">تشغيل</button>
+</div>
+
+<div class="episodes" id="episodesContainer"></div>
+
+<!-- مودال الفيديو -->
+<div id="videoOverlay" class="video-overlay" onclick="onOverlayClick(event)">
+  <div class="video-modal">
+    <button class="video-close" onclick="closeVideo()">إغلاق</button>
+    <iframe id="centerIframe" src="" allowfullscreen scrolling="no" title="مشغل الحلقة"></iframe>
+  </div>
+</div>
+
+<script>
+const episodes = [
+"https://go.screenpal.com/player/cTQQernot0w?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQeOnotZ1?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQevnotZz?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQeynotZ9?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQeAnotT3?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQepnotTs?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQeGnotOU?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQeJnotOP?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfhnotUI?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQf6notUK?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfonotv3?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfYnotvL?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfZnotw3?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfunotwk?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfxnotxo?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfznotxg?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfknotyh?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfEnotyp?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfJnot4O?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfsnot4P?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQfNnotay?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQhcnotzh?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQhenotza?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQhinotAh?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQh6notA0?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQh2notAJ?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQhFnotBI?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQhZnotBG?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQhKnotpy?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQh8notCU?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1cnot5e?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ11notEj?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1lnotGn?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1DnotGZ?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1YnotG8?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1Znotm4?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1vnotH3?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1znotJ2?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1knotdc?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1Enotdg?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1GnotKn?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1KnotK7?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ1Lnot7C?width=100%&height=100%&ff=1&title=0",
+"https://go.screenpal.com/player/cTQQ19notsx?width=100%&height=100%&ff=1&title=0"
+];
+
+const container = document.getElementById('episodesContainer');
+const overlay = document.getElementById('videoOverlay');
+const centerIframe = document.getElementById('centerIframe');
+
+episodes.forEach((url, index) => {
+  const btn = document.createElement('button');
+  btn.className = 'episode-btn';
+  btn.textContent = `حلقة ${index + 1}`;
+  btn.onclick = () => {
+    centerIframe.src = url;
+    overlay.style.display = 'flex';
+  };
+  container.appendChild(btn);
+});
+
+function closeVideo() {
+  overlay.style.display = 'none';
+  centerIframe.src = '';
+}
+
+function onOverlayClick(e) {
+  if(e.target === overlay) closeVideo();
+}
+
+function goToEpisode() {
+  const num = parseInt(document.getElementById('episodeNumber').value, 10);
+  if(num >= 1 && num <= episodes.length){
+    centerIframe.src = episodes[num-1];
+    overlay.style.display = 'flex';
+  } else {
+    alert('الرجاء إدخال رقم حلقة صحيح بين 1 و ' + episodes.length);
+  }
+}
+</script>
+
+</body>
+</html>
