@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>الموسم الثاني</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: white;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h2 { margin-bottom: 10px; }
+    .search-box { margin-bottom: 20px; }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+    }
+    input { width: 120px; text-align: center; }
+    button.play { background-color: orange; color: black; cursor: pointer; font-weight: bold; }
+    .episodes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .episode-btn {
+      background-color: #2a2a2a;
+      color: #ddd;
+      border: none;
+      padding: 14px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      display: block;
+    }
+    .episode-btn:hover { background-color: orange; color: #111; }
+
+    /* مودال الفيديو */
+    .video-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .video-modal {
+      width: 86%;
+      max-width: 1100px;
+      height: 66%;
+      background: #000;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+    .video-modal iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    .video-close {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255,0,0,0.9);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 10000;
+    }
+  </style>
+</head>
+<body>
+
+<h2>الموسم الثاني</h2>
+
+<div class="search-box">
+  <input type="number" id="episodeNumber" placeholder="رقم الحلقة" min="1" max="38">
+  <button class="play" onclick="goToEpisode()">تشغيل</button>
+</div>
+
+<div class="episodes" id="episodesContainer"></div>
+
+<!-- مودال الفيديو -->
+<div id="videoOverlay" class="video-overlay" onclick="onOverlayClick(event)">
+  <div class="video-modal">
+    <button class="video-close" onclick="closeVideo()">إغلاق</button>
+    <iframe id="centerIframe" src="" allowfullscreen scrolling="no" title="مشغل الحلقة"></iframe>
+  </div>
+</div>
+
+<script>
+const episodes = [
+  "https://go.screenpal.com/player/cTQ23dnoGMO?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQ23NnoGMW?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQ23RnoGL4?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQ20DnoG80?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQ200noGPi?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQ20UnoGPM?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQ20dnoGRp?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQocenoGWh?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQocinoGWU?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQocXnoGWR?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQocFnomVl?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoctnomnX?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoc4nomen?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQocgnomeA?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQocHnomfA?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQocsnomhV?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoVVnom11?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoV1nom1u?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoVXnom1W?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoVonomiZ?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoVOnomjy?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoVwnomQQ?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoVanomQM?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoVgnom6q?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoV5nom6N?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoVKnomlc?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQonwnomFn?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQonznomFs?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQon5nomqW?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQonJnomYC?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQonMnomru?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQonRnom3i?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoe3nomTj?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoeOnomTA?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoeznomt3?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoeEnomur?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoeJnomUV?width=100%&height=100%&ff=1&title=0",
+  "https://go.screenpal.com/player/cTQoePnomvU?width=100%&height=100%&ff=1&title=0"
+];
+
+const container = document.getElementById('episodesContainer');
+const overlay = document.getElementById('videoOverlay');
+const centerIframe = document.getElementById('centerIframe');
+
+/* إنشاء أزرار الحلقات وفتحها داخل المودال في نفس الصفحة */
+episodes.forEach((url, index) => {
+  const btn = document.createElement('button');
+  btn.className = 'episode-btn';
+  btn.textContent = `حلقة ${index + 1}`;
+  btn.onclick = () => {
+    centerIframe.src = url;
+    overlay.style.display = 'flex';
+  };
+  container.appendChild(btn);
+});
+
+/* إغلاق المودال */
+function closeVideo() {
+  overlay.style.display = 'none';
+  centerIframe.src = '';
+}
+
+/* إغلاق عند الضغط خارج الفيديو */
+function onOverlayClick(e) {
+  if (e.target === overlay) closeVideo();
+}
+
+/* تشغيل بواسطة رقم الحلقة */
+function goToEpisode() {
+  const num = parseInt(document.getElementById('episodeNumber').value, 10);
+  if (num >= 1 && num <= episodes.length) {
+    centerIframe.src = episodes[num - 1];
+    overlay.style.display = 'flex';
+  } else {
+    alert('الرجاء إدخال رقم حلقة صحيح بين 1 و ' + episodes.length);
+  }
+}
+</script>
+
+</body>
+</html>
+```0
