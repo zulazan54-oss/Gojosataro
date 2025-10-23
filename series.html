@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>نسخة تجريبية من نتفليكس — المسلسلات (محسّن)</title>
+
+<!-- preconnect للـ hosts و preload للصور الحرِجية -->
+<link rel="preconnect" href="https://iili.io" crossorigin>
+<link rel="preconnect" href="https://picsum.photos" crossorigin>
+<!-- حمّل سريعًا أول 2-3 صور مرئية فوق الطي -->
+<link rel="preload" as="image" href="https://iili.io/FDulkGV.jpg">
+<link rel="preload" as="image" href="https://iili.io/FDaQV2e.jpg">
+<link rel="preload" as="image" href="https://iili.io/FDBvixa.jpg">
+
+<style>
+  :root{ --bg:#000; --fg:#fff; --muted:#b3b3b3; --card:#141414; --accent:#e50914; --glass: rgba(255,255,255,0.04); }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  a{color:inherit;text-decoration:none}
+
+/* Top bar */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.6) 60%, transparent);
+  padding:12px 16px 8px;display:flex;align-items:center;gap:12px
+}
+.logo{margin-left:2px;font-weight:800;letter-spacing:.06em;color:var(--accent);font-size:22px}
+.avatar{margin-left:auto;width:28px;height:28px;border-radius:50%;overflow:hidden;border:2px solid #222}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* Burger button */
+.burger{appearance:none;border:0;background:transparent;color:var(--muted);display:inline-grid;place-items:center;width:38px;height:38px;border-radius:8px;cursor:pointer;padding:6px;touch-action:manipulation}
+.burger:active{transform:scale(.98)}
+.burger svg{width:20px;height:20px;Display:block}
+
+/* Tabs */
+.tabs{display:flex;gap:22px;align-items:center;padding:8px 16px 10px}
+.tab{font-size:15px;color:#ddd;opacity:.9;position:relative;padding-bottom:6px;background:transparent;border:0;cursor:pointer;touch-action:manipulation}
+.tab.active{color:#fff;font-weight:600}
+
+/* Title */
+.page-title{font-size:28px;font-weight:800;padding:18px 16px 8px;margin:0}
+
+/* Grid: 3 columns */
+.series-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  padding:12px 16px 24px;
+  align-items:start;
+}
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+  border-radius:8px;overflow:hidden;display:block;border:1px solid rgba(255,255,255,0.04);
+  box-shadow:0 8px 20px rgba(0,0,0,0.6);
+  will-change: transform, opacity;
+}
+.card:active { transform: translateY(1px) scale(0.997); } /* feedback */
+.card .art{width:100%;aspect-ratio:2/3;display:block;overflow:hidden;background:linear-gradient(180deg,#222,#131313)} 
+.card img{width:100%;height:100%;object-fit:cover;display:block;min-width:100%}
+.card .meta{padding:8px 10px;background:transparent;text-align:right}
+.card .title{font-size:13px;font-weight:700;margin:0;color:#fff}
+.card .sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* responsive */
+@media (max-width:920px){ .series-grid{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:420px){ .series-grid{grid-template-columns:repeat(3,1fr);gap:8px;padding:8px } .page-title{font-size:22px;padding:12px} .card .meta{padding:6px 8px} }
+
+/* bottom nav styles */
+.bottom-nav{position:sticky;bottom:0;z-index:40;background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.6) 10%, rgba(0,0,0,.95) 60%);padding:10px 14px 12px}
+.nav{background:#171717;border:1px solid #222;border-radius:20px;display:flex;justify-content:space-around;align-items:center;padding:12px 8px;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.nav button{appearance:none;border:0;background:transparent;color:#cfcfcf;display:grid;gap:6px;place-items:center;font-size:11px;padding:0 4px 2px;min-width:54px;cursor:pointer;touch-action:manipulation}
+.nav button.active{color:#fff}
+.ico{width:22px;height:22px;display:block}
+
+/* notifications panel */
+.panel-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);opacity:0;visibility:hidden;transition:opacity .18s ease;z-index:190}
+.panel-backdrop.visible{opacity:1;visibility:visible;}
+.notifications-panel{position:fixed;left:0;right:0;bottom:0;max-height:78vh;background:linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.98));border-top-left-radius:14px;border-top-right-radius:14px;transform:translateY(110%);transition:transform .28s cubic-bezier(.22,.9,.31,1);z-index:200;box-shadow:0 -12px 30px rgba(0,0,0,0.6);overflow:hidden;display:flex;flex-direction:column}
+.notifications-panel.open{transform:translateY(0)}
+.notifications-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.notifications-header h3{margin:0;font-size:16px}
+.notifications-header .actions{display:flex;gap:8px;align-items:center}
+.notifications-header button{background:transparent;border:0;color:var(--muted);cursor:pointer;padding:8px;border-radius:8px}
+.notifications-list{overflow:auto;padding:20px 12px;display:flex;flex-direction:column;gap:10px;min-height:120px}
+
+/* side menu */
+.side-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);opacity:0;visibility:hidden;transition:opacity .22s ease;z-index:180;pointer-events:none}
+.side-backdrop.visible{opacity:1;visibility:visible;pointer-events:auto}
+.side-menu{position:fixed;top:0;left:0;height:100vh;width:280px;max-width:82vw;transform:translateX(-100%);transition:transform .22s cubic-bezier(.2,.9,.3,1);z-index:190;background:linear-gradient(180deg, rgba(22,22,22,0.98), rgba(10,10,10,0.98));box-shadow: 8px 0 24px rgba(0,0,0,0.6);border-right:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;padding:14px 10px;touch-action:pan-y;will-change:transform}
+.side-menu.open{transform:translateX(0)}
+.side-menu .menu-header{display:flex;align-items:center;gap:10px;padding:6px 8px;margin-bottom:6px}
+.side-menu .menu-header .logo{font-size:18px;margin:0;color:var(--accent)}
+.side-menu nav{display:flex;flex-direction:column;gap:6px;padding-top:6px}
+.side-menu a{padding:10px 12px;border-radius:8px;color:#eaeaea;font-weight:600;text-decoration:none;display:flex;justify-content:space-between;align-items:center}
+.side-menu a.small{font-weight:500;font-size:14px;color:var(--muted)}
+.side-menu .spacer{flex:1}
+
+/* edge swipe */
+.edge-swipe-area{position:fixed;left:0;top:0;height:100vh;width:22px;z-index:170}
+@media (min-width:900px){ .edge-swipe-area{width:36px} }
+
+/* small perf hints */
+img{display:block;max-width:100%}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <button id="burgerMenu" class="burger" aria-label="قائمة">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"></path></svg>
+    </button>
+    <div class="logo">zanzulla</div>
+    <div class="avatar"><img src="https://picsum.photos/seed/profile/200" alt="الملف الشخصي" width="56" height="56" decoding="async"></div>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="التبويبات">
+    <button class="tab">الرئيسية</button>
+    <button class="tab active" aria-current="true">المسلسلات</button>
+    <button class="tab">الأفلام</button>
+    <button class="tab">قائمتي</button>
+  </nav>
+
+  <main>
+    <h1 class="page-title">المسلسلات</h1>
+    <section class="series-grid" aria-label="شبكة المسلسلات">
+      <!-- Note: نستخدم placeholder SVG صغير في src لحجز المساحة + data-src للصورة الحقيقية -->
+      <!-- بطاقة 1: صورة فوق الطي (نحمّلها مباشرة مع أولوية) -->
+      <a class="card" href="gumball.html">
+        <span class="art">
+          <img src="https://iili.io/FDulkGV.jpg" alt="مسلسل 1" width="400" height="600" decoding="async" fetchpriority="high">
+        </span>
+        <div class="meta"><p class="title">عالم غامبول المدهش</p><p class="sub">كوميديا ,  2011</p></div>
+      </a>
+
+      <!-- بطاقة 2: نضع data-src + lazy -->
+      <a class="card" href="flapjack.html">
+        <span class="art">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600'%3E%3Crect width='100%25' height='100%25' fill='%23181818'/%3E%3C/svg%3E"
+               data-src="https://iili.io/FDaQV2e.jpg" alt="مسلسل 2" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">فلاب جاك</p><p class="sub">مغامرات , 2008</p></div>
+      </a>
+
+      <!-- بطاقة 3 -->
+      <a class="card" href="catdog.html">
+        <span class="art">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600'%3E%3Crect width='100%25' height='100%25' fill='%23181818'/%3E%3C/svg%3E"
+               data-src="https://iili.io/FDBvixa.jpg" alt="مسلسل 3" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">بسبس بوبي</p><p class="sub">كوميديا , 1998</p></div>
+      </a>
+
+      <!-- بطاقة 4 -->
+      <a class="card" href="edd.html">
+        <span class="art">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600'%3E%3Crect width='100%25' height='100%25' fill='%23181818'/%3E%3C/svg%3E"
+               data-src="https://iili.io/FDulNZx.jpg" alt="مسلسل 4" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">إد إدد و إدي</p><p class="sub">مغامرات , 1999</p></div>
+      </a>
+
+      <!-- بطاقة 5 -->
+      <a class="card" href="mucha.html">
+        <span class="art">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600'%3E%3Crect width='100%25' height='100%25' fill='%23181818'/%3E%3C/svg%3E"
+               data-src="https://iili.io/FDB8Jxs.jpg" alt="مسلسل 5" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">موتشا لوتشا</p><p class="sub">مصارعة , 2002</p></div>
+      </a>
+
+      <!-- --- إضافات المستخدم: 4 كروت جديدة --- -->
+
+      <!-- بطاقة إضافية 1 -->
+      <a class="card" href="courage.html">
+        <span class="art">
+          <img src="https://iili.io/Kc1OyZu.jpg" alt="كوردج الكلب الجبان" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">كوردج الكلب الجبان</p><p class="sub">كوميديا , 2004</p></div>
+      </a>
+
+      <!-- بطاقة إضافية 2 -->
+      <a class="card" href="ginger.html">
+        <span class="art">
+          <img src="https://iili.io/Kc1Opje.jpg" alt="حكايات جنجر" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">حكايات جنجر:</p><p class="sub">خيال , 2010</p></div>
+      </a>
+
+      <!-- بطاقة إضافية 3 -->
+      <a class="card" href="showder.html">
+        <span class="art">
+          <img src="https://iili.io/Kc1eHCb.jpg" alt="تشاودر" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">تشاودر</p><p class="sub">مغامرات , 2007</p></div>
+      </a>
+
+      <!-- بطاقة إضافية 4 -->
+      <a class="card" href="adventuretime.html">
+        <span class="art">
+          <img src="https://iili.io/Kc1ed6x.jpg" alt="وقت المغامرة" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">وقت المغامرة</p><p class="sub">مغامرات , 2010</p></div>
+      </a>
+
+      <!-- الكروت الجديدة المطلوبة -->
+      <a class="card" href="khar.html">
+        <span class="art">
+          <img src="https://iili.io/KltQwf1.jpg" alt="خربشات" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">خربشات</p><p class="sub">مغامرات , 2005</p></div>
+      </a>
+
+      <a class="card" href="egyxos.html">
+        <span class="art">
+          <img src="https://iili.io/KlttN9a.png" alt="المعركة الحاسمة" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">المعركة الحاسمة</p><p class="sub">مغامرات , 2014</p></div>
+      </a>
+
+      <a class="card" href="fionna.html">
+        <span class="art">
+          <img src="https://iili.io/KltyPja.jpg" alt="فيونا و كيك" width="400" height="600" loading="lazy" decoding="async">
+        </span>
+        <div class="meta"><p class="title">فيونا و كيك</p><p class="sub">مغامرات , 2023</p></div>
+      </a>
+
+<a class="card" href="titans.html">
+  <span class="art">
+    <img src="https://iili.io/KgqyaQ2.jpg" alt="أبطال التايتنز" width="400" height="600" loading="lazy" decoding="async">
+  </span>
+  <div class="meta">
+    <p class="title">أبطال التايتنز</p>
+    <p class="sub">مغامرات , 2003</p>
+  </div>
+</a>
+
+<a class="card" href="dannyphantom.html">
+  <span class="art">
+    <img src="https://iili.io/KgB50bf.webp" alt="داني الشبح" width="400" height="600" loading="lazy" decoding="async">
+  </span>
+  <div class="meta">
+    <p class="title">داني الشبح</p>
+    <p class="sub">مغامرات , 2004</p>
+  </div>
+</a>
+
+<a class="card" href="greenlanter.html">
+  <span class="art">
+    <img src="https://iili.io/KgBqWKv.jpg" alt="الفانوس الأخضر" width="400" height="600" loading="lazy" decoding="async">
+  </span>
+  <div class="meta">
+    <p class="title">الفانوس الأخضر</p>
+    <p class="sub">مغامرات , 2012</p>
+  </div>
+</a>
+
+<a class="card" href="scoobydo.html">
+  <span class="art">
+    <img src="https://iili.io/KgBrrdB.jpg" alt="سكوبي دوو" width="400" height="600" loading="lazy" decoding="async">
+  </span>
+  <div class="meta">
+    <p class="title">سكوبي دوو</p>
+    <p class="sub">مغامرات , 2002</p>
+  </div>
+</a>
+
+<a class="card" href="satrdays.html">
+  <span class="art">
+    <img src="https://iili.io/KgB6aMG.jpg" alt="عائلة ساترديز" width="400" height="600" loading="lazy" decoding="async">
+  </span>
+  <div class="meta">
+    <p class="title">عائلة ساترديز</p>
+    <p class="sub">مغامرات , 2008</p>
+  </div>
+</a>
+
+<a class="card" href="genrator.html">
+  <span class="art">
+    <img src="https://iili.io/KgBszcx.jpg" alt="جنرايتور ريكس" width="400" height="600" loading="lazy" decoding="async">
+  </span>
+  <div class="meta">
+    <p class="title">جنرايتور ريكس</p>
+    <p class="sub">مغامرات , 2010</p>
+  </div>
+</a>
+
+    </section>
+  </main>
+
+  <!-- notifications + panels (unchanged structure) -->
+  <div id="panelBackdrop" class="panel-backdrop" aria-hidden="true"></div>
+  <aside id="notificationsPanel" class="notifications-panel" aria-hidden="true" role="dialog" aria-label="الإشعارات">
+    <div class="notifications-header">
+      <h3>الإشعارات</h3>
+      <div class="actions">
+        <button id="clearNotifications" title="مسح الكل">مسح الكل</button>
+        <button id="closeNotifications" aria-label="إغلاق">إغلاق</button>
+      </div>
+    </div>
+    <div class="notifications-list" id="notificationsList"><div style="padding:20px;text-align:center;color:var(--muted);">لا توجد إشعارات</div></div>
+  </aside>
+
+  <!-- side menu -->
+  <div class="edge-swipe-area" id="edgeSwipeArea" aria-hidden="true"></div>
+  <div id="sideBackdrop" class="side-backdrop" aria-hidden="true"></div>
+  <aside id="sideMenu" class="side-menu" aria-hidden="true" role="dialog" aria-label="القائمة الجانبية">
+    <div class="menu-header">
+      <div class="logo">zanzulla</div>
+      <div style="margin-left:auto">
+        <button id="closeSideBtn" class="burger" aria-label="إغلاق القائمة">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.71L12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.18 12 2.88 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"></path></svg>
+        </button>
+      </div>
+    </div>
+    <nav aria-label="روابط القايمة">
+      <a href="#" class="small">الرئيسية</a>
+      <a href="#" class="small">المسلسلات</a>
+      <a href="#" class="small">الأفلام</a>
+      <a href="#" class="small">قائمتي</a>
+      <a href="#" class="small">قنوات وشركات</a>
+      <a href="#" class="small">الإعدادات</a>
+    </nav>
+    <div class="spacer"></div>
+    <div style="padding:10px 12px;font-size:13px;color:var(--muted)">مستخدم: zanzulla<br>حسابك — إدارة</div>
+  </aside>
+
+  <!-- bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav" role="navigation" aria-label="القائمة السفلية">
+      <button class="active" aria-label="الرئيسية">
+        <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3z"></path></svg>
+        <span>الرئيسية</span>
+      </button>
+      <button aria-label="بحث" id="searchBtn">
+        <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.5 21.5 20 15.5 14zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+        <span>بحث</span>
+      </button>
+
+      <button aria-label="قائمتي">
+        <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+        <span>قائمتي</span>
+      </button>
+
+      <button aria-label="الإشعارات" id="notificationsBtn">
+        <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5S10.5 3.17 10.5 4v.68C7.63 5.36 6 7.92 6 11v5l-1.99 2H20l-2-2z"></path></svg>
+        <span>الإشعارات</span>
+      </button>
+
+      <button aria-label="التنزيلات">
+        <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM12 2l-5.5 6h4v6h3V8h4L12 2z"></path></svg>
+        <span>الت تنزيلات</span>
+      </button>
+    </div>
+  </div>
+
+<script>
+/* ---------------------------
+  1) Lazy loader لـ images (data-src -> src)
+     - الصور ذات data-src سيتم تحميلها عند اقترابها (rootMargin كبير).
+     - الصور الأولى فوق الطي استخدمنا src مباشر مع fetchpriority.
+   --------------------------- */
+(function(){
+  const selector = 'img[data-src]';
+  const imgs = Array.from(document.querySelectorAll(selector));
+  if (!imgs.length) return;
+
+  function loadImage(img){
+    if(!img) return;
+    const src = img.getAttribute('data-src');
+    if(!src) return;
+    img.src = src;
+    img.removeAttribute('data-src');
+    // ensure decoding + loading attributes are set
+    try { img.decoding = 'async'; img.loading = img.loading || 'lazy'; } catch(e){}
+  }
+
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          loadImage(en.target);
+          obs.unobserve(en.target);
+        }
+      });
+    }, { rootMargin: '400px 0px 400px 0px', threshold: 0.01 });
+
+    imgs.forEach(img => io.observe(img));
+  } else {
+    // fallback: load after short delay
+    setTimeout(()=> imgs.forEach(loadImage), 300);
+  }
+})();
+
+/* ---------------------------
+  2) Make buttons respond faster (visual feedback on pointerdown)
+     and keep click behavior for navigation.
+   --------------------------- */
+(function fastButtonFeedback(){
+  // apply to nav buttons and cards
+  const pointerTargets = Array.from(document.querySelectorAll('.nav button, .tab, .card, .burger, .side-menu a, .menu-header button, .notifications-header button'));
+  pointerTargets.forEach(el=>{
+    // don't attach too many listeners if already attached
+    if (el.dataset.fastInit) return;
+    el.dataset.fastInit = '1';
+
+    // immediate pressed class for feedback
+    el.addEventListener('pointerdown', function(ev){
+      // pointer capture not necessary; use a lightweight class
+      el.classList.add('pressed');
+      // remove after short delay to avoid stuck state
+      setTimeout(()=> el.classList.remove('pressed'), 220);
+    }, {passive:true});
+
+    // also add keyboard focus styles accessibility (enter/space)
+    el.addEventListener('keyup', function(ev){
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        el.click();
+      }
+    });
+  });
+
+  // small CSS injection for .pressed to provide immediate visual cue
+  const style = document.createElement('style');
+  style.textContent = `
+    .pressed{ transform: translateY(1px) scale(.998) !important; opacity: .98 !important; }
+    .card.pressed{ box-shadow: 0 6px 14px rgba(0,0,0,.5) !important; }
+  `;
+  document.head.appendChild(style);
+})();
+
+/* ---------------------------
+  3) Defer non-critical JS (example: perf hints)
+   --------------------------- */
+(function deferNonCritical(){
+  function work(){
+    try{
+      // hint will-change on thumbnails (cheap)
+      document.querySelectorAll('.card, .thumb').forEach(el => el.style.willChange = 'transform, opacity');
+
+      // decode already-loaded images to warm raster cache (non-blocking)
+      Array.from(document.images).forEach(img => {
+        if (img.complete && typeof img.decode === 'function') img.decode().catch(()=>{});
+      });
+    }catch(e){}
+  }
+  if ('requestIdleCallback' in window) requestIdleCallback(work, {timeout: 1200});
+  else setTimeout(work, 800);
+})();
+
+/* ---------------------------
+  4) Existing UI logic (menu, notifications)
+     - kept minimal; event handlers are lightweight and use delegation where sensible.
+   --------------------------- */
+(function uiHandlers(){
+  const burgerMenu = document.getElementById('burgerMenu');
+  const sideMenu = document.getElementById('sideMenu');
+  const sideBackdrop = document.getElementById('sideBackdrop');
+  const closeSideBtn = document.getElementById('closeSideBtn');
+
+  function openSideMenu(){ 
+    if(sideMenu) sideMenu.classList.add('open'); 
+    if(sideMenu) sideMenu.setAttribute('aria-hidden','false');
+    if(sideBackdrop) sideBackdrop.classList.add('visible');
+    if(sideBackdrop) sideBackdrop.setAttribute('aria-hidden','false');
+    document.body.style.overscrollBehavior = 'none';
+  }
+  function closeSideMenu(){ 
+    if(sideMenu) sideMenu.classList.remove('open'); 
+    if(sideMenu) sideMenu.setAttribute('aria-hidden','true');
+    if(sideBackdrop) sideBackdrop.classList.remove('visible');
+    if(sideBackdrop) sideBackdrop.setAttribute('aria-hidden','true');
+    document.body.style.overscrollBehavior = '';
+  }
+
+  if (burgerMenu && sideMenu) burgerMenu.addEventListener('click', (e) => { e.stopPropagation(); if (sideMenu.classList.contains('open')) closeSideMenu(); else openSideMenu(); });
+  if (sideBackdrop) sideBackdrop.addEventListener('click', closeSideMenu);
+  if (closeSideBtn) closeSideBtn.addEventListener('click', closeSideMenu);
+
+  // bottom nav active visual
+  document.querySelectorAll('.nav button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+    }, {passive:true});
+  });
+
+  // notifications
+  const notificationsBtn = document.getElementById('notificationsBtn');
+  const notificationsPanel = document.getElementById('notificationsPanel');
+  const panelBackdrop = document.getElementById('panelBackdrop');
+  const closeNotifications = document.getElementById('closeNotifications');
+  const clearNotifications = document.getElementById('clearNotifications');
+  const notificationsList = document.getElementById('notificationsList');
+
+  function openNotifications(){ if (panelBackdrop) panelBackdrop.classList.add('visible'); if (panelBackdrop) panelBackdrop.setAttribute('aria-hidden','false'); if (notificationsPanel) notificationsPanel.classList.add('open'); if (notificationsPanel) notificationsPanel.setAttribute('aria-hidden','false'); document.body.style.overscrollBehavior = 'none'; }
+  function closeNotificationsPanel(){ if (panelBackdrop) panelBackdrop.classList.remove('visible'); if (panelBackdrop) panelBackdrop.setAttribute('aria-hidden','true'); if (notificationsPanel) notificationsPanel.classList.remove('open'); if (notificationsPanel) notificationsPanel.setAttribute('aria-hidden','true'); document.body.style.overscrollBehavior = ''; }
+
+  if (notificationsBtn) notificationsBtn.addEventListener('click', (e)=>{ e.stopPropagation(); if(notificationsPanel && notificationsPanel.classList.contains('open')) closeNotificationsPanel(); else openNotifications(); }, {passive:true});
+  if (panelBackdrop) panelBackdrop.addEventListener('click', closeNotificationsPanel, {passive:true});
+  if (clearNotifications) clearNotifications.addEventListener('click', ()=> {
+    while (notificationsList && notificationsList.firstChild) notificationsList.removeChild(notificationsList.firstChild);
+    const empty = document.createElement('div'); empty.style.padding='20px'; empty.style.textAlign='center'; empty.style.color='var(--muted)'; empty.textContent='لا توجد إشعارات';
+    if (notificationsList) notificationsList.appendChild(empty);
+  }, {passive:true});
+
+  // top tab navigation map (lightweight)
+  (function setupTopTabsNavigation() {
+    const navMap = { "الرئيسية": "office.html", "الأفلام": "films.html", "قائمتي": "mylist.html" };
+    const tabs = Array.from(document.querySelectorAll('.tabs .tab'));
+    tabs.forEach(tab => {
+      const text = (tab.innerText || tab.textContent || '').trim();
+      if (navMap[text]) {
+        tab.addEventListener('click', function (e) {
+          if (e && typeof e.preventDefault === 'function') e.preventDefault();
+          try { window.location.href = navMap[text]; } catch (err) { try { window.open(navMap[text], '_self'); } catch (e) {} }
+        }, {passive:true});
+      }
+    });
+  })();
+})();
+</script>
+
+</body>
+</html>
